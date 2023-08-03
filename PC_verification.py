@@ -9,7 +9,7 @@ import serial
 import numpy as np
 import matplotlib.pyplot as plt
 
-serialPort = serial.Serial("COM7", 115200)
+serialPort = serial.Serial("COM7", 57600)
 #serialPort.set_buffer_size(rx_size = 200000, tx_size = 200000);
 serialPort.flush()
 
@@ -45,7 +45,8 @@ for n in range(len(data)):
         sig = 0
         for p in range(1,17): # from 1 to 16
             sig = sig + 2**(-p)*int(comb[p-1])
-        sigmoid.append(sig)     
+        sigmoid.append(sig)  
+        #sigmoid.append(int(comb))
         
 
 file = open("LUT_values.txt", "r")
@@ -56,32 +57,23 @@ for n in range(65536):
     for p in range(1,17): # from 1 to 16
         sig = sig + 2**(-p)*int(ln[p-1])
     sigmoid_ref.append(sig)
+    #sigmoid_ref.append(int(ln[0:16]))
 
-# Generate LUT data stored on FPGA
 
-# x = np.linspace(-8,8,65536) # x mapped to 65536 values - the location in the array is the integer value
-
-# # Generate 16-bit lookup table data
-# sigmoid_ref = []
-# for n in range(65536): # step through all combinations of inputs
-#     xn = x[n]
-#     s = 1/(1+np.exp(-xn)) # the answer is in the form 0.1234... 
-#     # binary fractions up to 16 bits 
-#     bits = ""
-#     sig = 0
-#     for p in range(16):
-#         ans = s*2
-#         s = ans%1 # fractional part 0.1234...        
-#         bits = bits + str(int(ans)) 
-#         sig = sig + 2**(-(p+1))*int(ans)
-#     sigmoid_ref.append(sig)
-    
-# Convert strings to decimal values
 
 error = np.subtract(sigmoid_ref,sigmoid)
-#error = sigmoid_ref[50283] - np.array(sigmoid);
-    
+
+
+
+plt.figure(1)
 plt.plot(error)
+
+x = np.linspace(-8,8,65536)
+
+plt.figure(2)
+plt.plot(x,sigmoid)
+plt.plot(x,sigmoid_ref)
+
     
     
     
