@@ -11,15 +11,16 @@ port (
 end UART;
 
 architecture myUART of UART is
-	signal baud_clock, transmit_en, temp_en, next_temp_en, reset, next_reset, temp_load_data, next_load_data, load_data : std_logic := '0';
+	signal baud_clock, transmit_en, temp_en, next_temp_en, reset, next_reset, temp_load_data, next_load_data, load_data, load_ns_data, temp_load_ns_data : std_logic := '0';
 	signal rx_data, temp_rx_reg : std_logic_vector(7 downto 0);
-	signal tx_data, sigmoid : std_logic_vector(15 downto 0) := "0000000000010101"; -- 16 bit values
+	signal tx_data, sigmoid, ns_data, sigmoid_ns : std_logic_vector(15 downto 0) := "0000000000010101"; -- 16 bit values
 	signal temp_tx_bit : std_logic;
 	signal temp_rx, tx_end, temp_end, temp_test : std_logic := '1'; 
+	signal num_values_sent, temp_num_values_sent : integer range 0 to 65535 := 0;
 	type clk_cycles is range 0 to 2604;
 	type uart_bits is range 0 to 19;
-	type num_values_in_LUT is range 0 to 65536;
-	constant num_cycles : clk_cycles := 217; --2604
+	type num_values_in_LUT is range 0 to 65535;
+	constant num_cycles : clk_cycles := 434;--217;--1302; --2604
 	type lut_array is array (0 to 65535) of std_logic_vector(15 downto 0);
    constant lut_data : lut_array := (
 0 => "0000000000010101",
@@ -65596,7 +65597,7 @@ architecture myUART of UART is
 		
 		serial_transmitter : process (baud_clock)
 		variable bit_counter, end_of_byte : uart_bits := 0;
-		variable num_bytes_sent, next_num_bytes_sent, block_counter : integer := 0; -- change to appropriate range
+		variable num_bytes_sent, next_num_bytes_sent, block_counter : integer range 0 to 511 := 0; -- change to appropriate range
 		begin
 			if (transmit_en = '1') then			
 				
@@ -65608,6 +65609,7 @@ architecture myUART of UART is
 							temp_tx_bit <= '0'; -- start bit
 							bit_counter := 1;	
 							next_load_data <= '0'; ------------0
+							temp_load_ns_data <= '1'; -------------1
 						elsif (bit_counter = 9) then
 							temp_tx_bit <= '1'; -- stop bit
 							bit_counter := 10;	
@@ -65619,10 +65621,12 @@ architecture myUART of UART is
 								--num_bytes_sent := num_bytes_sent+1;		
 							--end if;
 							next_load_data <= '0';
+							temp_load_ns_data <= '0';
 						elsif (bit_counter = 10) then
 							temp_tx_bit <= '0'; -- start bit of byte 2
 							bit_counter := 11;
 							next_load_data <= '0';
+							temp_load_ns_data <= '0';
 						elsif (bit_counter = 19) then
 							temp_tx_bit <= '1'; -- stop bit of byte 2
 							bit_counter := 0;	
@@ -65635,6 +65639,7 @@ architecture myUART of UART is
 							end if;
 							
 							next_load_data <= '0';
+							temp_load_ns_data <= '0';
 							
 						else
 							case bit_counter is -- data bits
@@ -65660,9 +65665,12 @@ architecture myUART of UART is
 							
 							if bit_counter = 18 then
 								next_load_data <= '1'; -----------1
+								
 							else
 								next_load_data <= '0';
 							end if;
+							
+							temp_load_ns_data <= '0';
 							
 						end if;	
 						
@@ -65757,28 +65765,43 @@ architecture myUART of UART is
 		
 		
 		-- Load data to transmit 
-		tx_data <= sigmoid;--lut_data(50282); 
+		--tx_data <= sigmoid when transmit_en = '1' else
+					  --"0000000000010101"; -- first value in LUT
+					  
+		tx_data <= lut_data(num_values_sent);
+		
+		num_values_sent <= temp_num_values_sent;
 		
 		
 		LUT : process (load_data)
-		variable num_values_sent : integer := 0;
+		--variable num_values_sent : integer := 0;
 		begin
-	
 		
-		if (transmit_en = '1') then
-			if rising_edge(load_data) then	
-				num_values_sent := num_values_sent + 1;
-				sigmoid <= lut_data(num_values_sent);
+			if (transmit_en = '1') then
+				if rising_edge(load_data) then	
+					temp_num_values_sent <= temp_num_values_sent + 1;					
+					--sigmoid <= lut_data(num_values_sent);-----------
+					--ns_data <= lut_data(num_values_sent);
+					
+					--if num_values_sent = 65535 then
+						--sigmoid <= "0000000000010101";
+					--end if;
 							
-			end if; -- rising edge
+				end if; -- rising edge		
+				
+			else
+				temp_num_values_sent <= 0; --1				
+				--sigmoid <= "0000000000010101"; -- first value in LUT
+			end if; --transmit_en
+	
 			
-		else
-			num_values_sent := 0;
-			--sigmoid <= "0000000000010101"; -- first value in LUT
-		end if; --transmit_en
-		
 		
 		end process LUT;
+		
+		
+		
+		
+		
 		
 		
 		
