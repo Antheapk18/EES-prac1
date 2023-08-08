@@ -13,16 +13,16 @@ end serialCommsV1;
 
 -- will start with behavioural logic but will need to change to structural
 architecture UART of serialCommsV1 is
-signal tx_value : std_logic_vector(7 downto 0);
+signal tx_value : std_logic_vector(7 downto 0) := "00000000";
 signal tx_counter : integer := 0;
 signal baud_counter: integer := 0;
 
 begin
 	transmit_proc: process(switch, clk) -- transmission
 	begin
-	tx_value <= "01010101"; -- 8 bit value to send 
+	tx_value <= "01010101"; -- 8 bit value to send - (ascii U)
 	if (rising_edge(clk)) then
-		if (baud_counter < 2605 ) then -- one less than 434 as 0 - 343 2604
+		if (baud_counter < 5208 ) then -- 9600 baud rate 
 			baud_counter <= baud_counter + 1;
 		else
 			baud_counter <= 0;-- initialise counter again as reached max
@@ -47,8 +47,6 @@ begin
 					tx <= '1'; -- stop bit
 					tx_counter <= 0; -- reset counter need a reset somewhere but not sure
 				end if;
---			elsif (switch = '0') then
---				tx <= '1'; -- idle (keep line high)
 			end if;
 		end if;
 	end if; 
