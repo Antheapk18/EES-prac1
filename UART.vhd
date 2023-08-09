@@ -14,15 +14,11 @@ end UART;
 -- Architecture for sending 16-bit values over UART
 
 architecture archUART of UART is
-	signal baud_clock, temp_value_sent : std_logic := '0';
-	signal rx_data, temp_rx_reg : std_logic_vector(7 downto 0);
-	signal sigmoid, ns_data, sigmoid_ns : std_logic_vector(15 downto 0) := "0000000000010101"; -- 16 bit values
-	signal temp_tx_bit : std_logic;
-	signal temp_rx, tx_end, temp_end, temp_test : std_logic := '1'; 
-	signal num_values_sent, temp_num_values_sent : integer range 0 to 65535 := 0;
+	signal baud_clock, temp_value_sent, temp_tx_bit : std_logic := '0';
+	signal temp_rx_reg : std_logic_vector(7 downto 0);
+	signal temp_rx : std_logic := '1';	
 	type clk_cycles is range 0 to 2604;
-	type uart_bits is range 0 to 19; 
-	type num_values_in_LUT is range 0 to 65535;
+	type uart_bits is range 0 to 19;
 	constant num_cycles : clk_cycles := 434; -- 57600 baud
 begin
 		
@@ -44,10 +40,6 @@ begin
 
 		
 		tx_bit <= temp_tx_bit; 		
-		
-		--tx_end <= temp_end; -- end of serial transmission
-		
-		--transmit_en <= temp_en or (not(temp_end)); -- temp_en generates a one baud high pulse to start the serial transmission
 		
 		value_sent <= temp_value_sent;
 	
@@ -155,16 +147,6 @@ begin
 				end if;				
 			end if;	
 		end process serial_receiver;
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		
 		
 
