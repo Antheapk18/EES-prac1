@@ -5,7 +5,7 @@ import serial
 import matplotlib.pyplot as plt
 
 # Code snippet ChatGPT
-serialPort = serial.Serial('COM4', 9600)  # access Com4 at baud rate 9600
+serialPort = serial.Serial('COM5', 9600)  # access Com5 at baud rate 9600
 serialPort.flush()  # flush the serial port
 data = []
 send = 83
@@ -21,9 +21,15 @@ while serialPort.in_waiting == 0:
     x = 1
     #  stay here while nothing being received
 # Receive data
-n = 0
+n = 1
 while len(data) < 10:
     while serialPort.in_waiting > 0:
-        data.append(serialPort.read(1))  # Reads in 10 byte of data <- identifies start and stop bits
+        data.append(serialPort.read(1).decode('utf-8'))  # Reads in 10 byte of data <- identifies start and stop bits
+
+while n < len(data):
+    byte1 = data[n]  # A
+    byte2 = data[n-1]  # U
+    byteTotal = byte1 + byte2
+    n = n + 2
+    print(byteTotal)
 serialPort.close()
-print(data)
