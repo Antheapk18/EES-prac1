@@ -73,14 +73,14 @@ architecture behavior of testbench is
 											
 				else
 					case bit_counter is -- data bits
-						when 1 => temp_tx_bit <= '0'; 
+						when 1 => temp_tx_bit <= '1'; 
 						when 2 => temp_tx_bit <= '1';
 						when 3 => temp_tx_bit <= '0';
-						when 4 => temp_tx_bit <= '1';
-						when 5 => temp_tx_bit <= '0'; 
+						when 4 => temp_tx_bit <= '0';
+						when 5 => temp_tx_bit <= '1'; 
 						when 6 => temp_tx_bit <= '0';
 						when 7 => temp_tx_bit <= '1';
-						when 8 => temp_tx_bit <= '1';
+						when 8 => temp_tx_bit <= '0';
 						when 11 => temp_tx_bit <= '0'; 
 						when 12 => temp_tx_bit <= '1';
 						when 13 => temp_tx_bit <= '0';
